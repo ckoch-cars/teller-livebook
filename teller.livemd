@@ -1,0 +1,345 @@
+<!-- livebook:{"persist_outputs":true} -->
+
+# Teller Bank Challenge
+
+```elixir
+Mix.install([:req, :jason, :kino])
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+Resolving Hex dependencies...
+Dependency resolution completed:
+New:
+  castore 0.1.18
+  finch 0.13.0
+  hpax 0.1.2
+  jason 1.3.0
+  kino 0.6.2
+  mime 2.0.3
+  mint 1.4.2
+  nimble_options 0.4.0
+  nimble_pool 0.2.6
+  req 0.3.0
+  table 0.1.2
+  telemetry 1.1.0
+* Getting req (Hex package)
+* Getting jason (Hex package)
+* Getting kino (Hex package)
+* Getting table (Hex package)
+* Getting finch (Hex package)
+* Getting mime (Hex package)
+* Getting castore (Hex package)
+* Getting mint (Hex package)
+* Getting nimble_options (Hex package)
+* Getting nimble_pool (Hex package)
+* Getting telemetry (Hex package)
+* Getting hpax (Hex package)
+==> table
+Compiling 5 files (.ex)
+Generated table app
+==> mime
+Compiling 1 file (.ex)
+Generated mime app
+==> nimble_options
+Compiling 3 files (.ex)
+Generated nimble_options app
+==> kino
+Compiling 28 files (.ex)
+Generated kino app
+===> Analyzing applications...
+===> Compiling telemetry
+==> jason
+Compiling 10 files (.ex)
+Generated jason app
+==> hpax
+Compiling 4 files (.ex)
+Generated hpax app
+==> nimble_pool
+Compiling 2 files (.ex)
+Generated nimble_pool app
+==> castore
+Compiling 1 file (.ex)
+Generated castore app
+==> mint
+Compiling 1 file (.erl)
+Compiling 19 files (.ex)
+Generated mint app
+==> finch
+Compiling 13 files (.ex)
+Generated finch app
+==> req
+Compiling 5 files (.ex)
+Generated req app
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+:ok
+```
+
+## Your Solution
+
+```elixir
+username = Kino.Input.text("Username") |> Kino.render()
+password = Kino.Input.text("Password")
+```
+
+```elixir
+defmodule TellerBank do
+  defmodule OTPCode do
+    @moduledoc """
+    You can use this util module to generate your OTP
+    code dynamically.
+    """
+
+    @type username() :: String.t()
+
+    @spec generate(username) :: String.t()
+    def generate(username) do
+      username
+      |> String.to_charlist()
+      |> Enum.take(6)
+      |> Enum.map(&char_to_keypad_number/1)
+      |> List.to_string()
+      |> String.pad_leading(6, "0")
+    end
+
+    defp char_to_keypad_number(c) when c in ~c(a b c), do: '2'
+    defp char_to_keypad_number(c) when c in ~c(d e f), do: '3'
+    defp char_to_keypad_number(c) when c in ~c(g h i), do: '4'
+    defp char_to_keypad_number(c) when c in ~c(j k l), do: '5'
+    defp char_to_keypad_number(c) when c in ~c(m n o), do: '6'
+    defp char_to_keypad_number(c) when c in ~c(p q r s), do: '7'
+    defp char_to_keypad_number(c) when c in ~c(t u v), do: '8'
+    defp char_to_keypad_number(c) when c in ~c(w x y z), do: '9'
+    defp char_to_keypad_number(_), do: '0'
+  end
+
+  defmodule ChallengeResult do
+    @type t :: %__MODULE__{
+            account_number: String.t(),
+            balance_in_cents: integer
+          }
+    defstruct [:account_number, :balance_in_cents]
+  end
+
+  defmodule Client do
+    @type username() :: String.t()
+    @type password() :: String.t()
+
+    @spec fetch(username, password) :: ChallengeResult.t()
+    def fetch(username, password) do
+      map = %{password: password, username: username}
+      dev_id = "JFANVAI3KUUQ77ZZ"
+      useragent = "Teller Bank iOS 1.0"
+      apikey = "good-luck-at-the-teller-quiz!"
+
+      req =
+        Req.new(
+          url: "https://challenge.teller.engineering/login",
+          method: :post,
+          json: map,
+          headers: %{"device-id" => dev_id, "api-key" => apikey, "accept" => "application/json"},
+          user_agent: useragent
+        )
+
+      {:ok, un_resp} = Req.request(req)
+
+      mfa_id = Enum.find(un_resp.body["mfa_devices"], &(&1["type"] == "SMS"))["id"]
+
+      body = %{device_id: mfa_id}
+      {token, req_token} = token_from_resp(un_resp, apikey, username, dev_id)
+
+      req =
+        Req.new(
+          url: "https://challenge.teller.engineering/login/mfa/request",
+          method: :post,
+          json: body,
+          headers: %{
+            "device-id" => dev_id,
+            "api-key" => apikey,
+            "teller-is-hiring" => "I know!",
+            "f-token" => token,
+            "request-token" => req_token,
+            "accept" => "application/json"
+          },
+          user_agent: useragent
+        )
+
+      {:ok, resp} = Req.request(req)
+
+      {token, req_token} = token_from_resp(resp, apikey, username, dev_id)
+
+      body = %{code: TellerBank.OTPCode.generate(username)}
+
+      req =
+        Req.new(
+          url: "https://challenge.teller.engineering/login/mfa",
+          method: :post,
+          json: body,
+          headers: %{
+            "device-id" => dev_id,
+            "api-key" => apikey,
+            "teller-is-hiring" => "I know!",
+            "f-token" => token,
+            "request-token" => req_token,
+            "accept" => "application/json"
+          },
+          user_agent: useragent
+        )
+
+      {:ok, acc_resp} = Req.request(req)
+
+      {token, req_token} = token_from_resp(acc_resp, apikey, username, dev_id)
+
+      [[id]] =
+        acc_resp.body["accounts"]
+        |> Enum.map(fn {_type, accts} ->
+          Enum.map(accts, & &1["id"])
+        end)
+
+      req =
+        Req.new(
+          url: "https://challenge.teller.engineering/accounts/#{id}/details",
+          method: :get,
+          headers: %{
+            "device-id" => dev_id,
+            "api-key" => apikey,
+            "teller-is-hiring" => "I know!",
+            "f-token" => token,
+            "request-token" => req_token,
+            "accept" => "application/json"
+          },
+          user_agent: useragent
+        )
+
+      {:ok, det_resp} = Req.request(req)
+
+      acct_number =
+        det_resp.body["number"]
+        |> IO.inspect()
+
+      {token, req_token} = token_from_resp(det_resp, apikey, username, dev_id)
+
+      req =
+        Req.new(
+          url: "https://challenge.teller.engineering/accounts/#{id}/balances",
+          method: :get,
+          headers: %{
+            "device-id" => dev_id,
+            "api-key" => apikey,
+            "teller-is-hiring" => "I know!",
+            "f-token" => token,
+            "request-token" => req_token,
+            "accept" => "application/json"
+          },
+          user_agent: useragent
+        )
+
+      {:ok, bal_resp} =
+        Req.request(req)
+        |> IO.inspect(label: "Balance Response")
+
+      %ChallengeResult{account_number: acct_number, balance_in_cents: bal_resp.body["ledger"]}
+    end
+
+    defp token_from_resp(resp, apikey, username, dev_id) do
+      [req_id] = Req.Response.get_header(resp, "f-request-id")
+      [req_token] = Req.Response.get_header(resp, "request-token")
+
+      spec = token_spec(resp)
+      token_string = token_string(spec, apikey, username, dev_id, req_id)
+      {token(token_string), req_token}
+    end
+
+    defp token_spec(resp) do
+      Req.Response.get_header(resp, "f-token-spec")
+      |> List.first()
+      |> Base.decode64!()
+      |> Jason.decode!()
+    end
+
+    defp token_string(spec, apikey, username, dev_id, req_id) do
+      token_map = %{
+        "api-key" => apikey,
+        "username" => username,
+        "last-request-id" => req_id,
+        "device-id" => dev_id
+      }
+
+      spec["values"]
+      |> Enum.map(fn value ->
+        Map.get(token_map, value)
+      end)
+      |> Enum.join(spec["separator"])
+    end
+
+    defp token(token_string) do
+      :crypto.hash(:sha256, token_string) |> Base.encode64(padding: false)
+    end
+  end
+end
+
+username = Kino.Input.read(username)
+password = Kino.Input.read(password)
+
+TellerBank.Client.fetch(username, password)
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+"862720188851"
+Balance Response: {:ok,
+ %Req.Response{
+   status: 200,
+   headers: [
+     {"cache-control", "max-age=0, private, must-revalidate"},
+     {"content-encoding", "gzip"},
+     {"content-type", "application/json; charset=utf-8"},
+     {"date", "Thu, 01 Sep 2022 18:20:33 GMT"},
+     {"f-request-id", "req_7rfsvhbkwyvuiyhdtwwpr4ak733bw2vdg4dkk7a"},
+     {"f-token-spec",
+      "eyJtZXRob2QiOiJzaGEyNTYtYmFzZTY0LW5vLXBhZGRpbmciLCJzZXBhcmF0b3IiOiI6IiwidmFsdWVzIjpbInVzZXJuYW1lIiwibGFzdC1yZXF1ZXN0LWlkIiwiZGV2aWNlLWlkIiwiYXBpLWtleSJdfQ=="},
+     {"request-token",
+      "QTEyOEdDTQ._BLKUEPPdPpDpgEj4736l0z_1PRo5adfIyrlpjvJ75D3sqUBCMkFZQNyAsQ.mtp714hA-ea54aIq.zdS-79SsGLznGn0V_vgUY1Egkl6A0nuiM7CKRt6JYLZV7-DOQE4TxgqDTACzwU3VX22aM1rqJRA3ahe8Xsoh7mRF_N7lknWHppLmYRTldCbD_Hs8QXwMQodxw0bbl-dCzg.efKLBW-_hdxEuBJ7D4yE4Q"},
+     {"server", "Fly/33b1353d (2022-09-01)"},
+     {"teller-is-hiring",
+      "https://jobs.lever.co/teller/dd21975a-901b-49ee-926c-336c92f8673d"},
+     {"timestamp", "1662056433964"},
+     {"x-request-id", "FxDPhU8UM_Xb82gAAEMB"},
+     {"transfer-encoding", "chunked"},
+     {"via", "1.1 fly.io"},
+     {"fly-request-id", "01GBX4H28R0C08DGJ17A5H4PNY-iad"}
+   ],
+   body: %{
+     "available" => 4677283,
+     "last_transactions" => [
+       %{
+         "amount" => -399,
+         "posted" => false,
+         "title" => "Single Origin Espresso at ElixirConf"
+       },
+       %{
+         "amount" => -279,
+         "posted" => false,
+         "title" => "Artisanal chocolate chip cookie"
+       },
+       %{"amount" => -999, "posted" => false, "title" => "Banana walnut waffle"}
+     ],
+     "ledger" => 4687283
+   },
+   private: %{}
+ }}
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+%TellerBank.ChallengeResult{account_number: "862720188851", balance_in_cents: 4687283}
+```
+
+See source
