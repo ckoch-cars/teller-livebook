@@ -46,15 +46,7 @@ defmodule TellerBank do
       dev_id = "JFANVAI3KUUQ77ZZ"
       useragent = "Teller Bank iOS 1.0"
       apikey = "good-luck-at-the-teller-quiz!"
-
-      req =
-        Req.new(
-          url: "https://challenge.teller.engineering/login",
-          method: :post,
-          json: map,
-          headers: %{"device-id" => dev_id, "api-key" => apikey, "accept" => "application/json"},
-          user_agent: useragent
-        )
+      req = Req.new(url: "https://challenge.teller.engineering/login", method: :post, json: map, headers: %{"device-id" => dev_id, "api-key" => apikey, "accept" => "application/json"}, user_agent: useragent)
 
       {:ok, un_resp} = Req.request(req)
 
@@ -63,92 +55,33 @@ defmodule TellerBank do
       body = %{device_id: mfa_id}
       {token, req_token} = token_from_resp(un_resp, apikey, username, dev_id)
 
-      req =
-        Req.new(
-          url: "https://challenge.teller.engineering/login/mfa/request",
-          method: :post,
-          json: body,
-          headers: %{
-            "device-id" => dev_id,
-            "api-key" => apikey,
-            "teller-is-hiring" => "I know!",
-            "f-token" => token,
-            "request-token" => req_token,
-            "accept" => "application/json"
-          },
-          user_agent: useragent
-        )
-
+      req = Req.new(url: "https://challenge.teller.engineering/login/mfa/request", method: :post, json: body, headers: %{"device-id" => dev_id, "api-key" => apikey, "teller-is-hiring" => "I know!", "f-token" => token, "request-token" => req_token, "accept" => "application/json"}, user_agent: useragent)
       {:ok, resp} = Req.request(req)
 
       {token, req_token} = token_from_resp(resp, apikey, username, dev_id)
 
       body = %{code: TellerBank.OTPCode.generate(username)}
 
-      req =
-        Req.new(
-          url: "https://challenge.teller.engineering/login/mfa",
-          method: :post,
-          json: body,
-          headers: %{
-            "device-id" => dev_id,
-            "api-key" => apikey,
-            "teller-is-hiring" => "I know!",
-            "f-token" => token,
-            "request-token" => req_token,
-            "accept" => "application/json"
-          },
-          user_agent: useragent
-        )
-
+      req = Req.new(url: "https://challenge.teller.engineering/login/mfa", method: :post, json: body, headers: %{"device-id" => dev_id, "api-key" => apikey, "teller-is-hiring" => "I know!", "f-token" => token, "request-token" => req_token, "accept" => "application/json"}, user_agent: useragent)
       {:ok, acc_resp} = Req.request(req)
 
       {token, req_token} = token_from_resp(acc_resp, apikey, username, dev_id)
 
-      [[id]] =
-        acc_resp.body["accounts"]
-        |> Enum.map(fn {_type, accts} ->
-          Enum.map(accts, & &1["id"])
-        end)
+      [[id]] = acc_resp.body["accounts"]
+      |> Enum.map(fn {_type, accts} -> 
+        Enum.map(accts, &(&1["id"]))        
+      end)
 
-      req =
-        Req.new(
-          url: "https://challenge.teller.engineering/accounts/#{id}/details",
-          method: :get,
-          headers: %{
-            "device-id" => dev_id,
-            "api-key" => apikey,
-            "teller-is-hiring" => "I know!",
-            "f-token" => token,
-            "request-token" => req_token,
-            "accept" => "application/json"
-          },
-          user_agent: useragent
-        )
-
+      req = Req.new(url: "https://challenge.teller.engineering/accounts/#{id}/details", method: :get, headers: %{"device-id" => dev_id, "api-key" => apikey, "teller-is-hiring" => "I know!", "f-token" => token, "request-token" => req_token, "accept" => "application/json"}, user_agent: useragent)
       {:ok, det_resp} = Req.request(req)
+      acct_number = det_resp.body["number"]
       {token, req_token} = token_from_resp(det_resp, apikey, username, dev_id)
 
-      req =
-        Req.new(
-          url: "https://challenge.teller.engineering/accounts/#{id}/balances",
-          method: :get,
-          headers: %{
-            "device-id" => dev_id,
-            "api-key" => apikey,
-            "teller-is-hiring" => "I know!",
-            "f-token" => token,
-            "request-token" => req_token,
-            "accept" => "application/json"
-          },
-          user_agent: useragent
-        )
+      req = Req.new(url: "https://challenge.teller.engineering/accounts/#{id}/balances", method: :get, headers: %{"device-id" => dev_id, "api-key" => apikey, "teller-is-hiring" => "I know!", "f-token" => token, "request-token" => req_token, "accept" => "application/json"}, user_agent: useragent)
+      {:ok, bal_resp} = Req.request(req)
+      |> IO.inspect(label: "Balance Response")
 
-      {:ok, bal_resp} =
-        Req.request(req)
-        |> IO.inspect(label: "Balance Response")
-
-      bal_resp.body["ledger"]
+      %ChallengeResult{account_number: acct_number, balance_in_cents: bal_resp.body["available"]}
     end
 
     defp token_from_resp(resp, apikey, username, dev_id) do
@@ -170,13 +103,13 @@ defmodule TellerBank do
     defp token_string(spec, apikey, username, dev_id, req_id) do
       token_map = %{
         "api-key" => apikey,
-        "username" => username,
-        "last-request-id" => req_id,
+        "username" => username, 
+        "last-request-id" => req_id, 
         "device-id" => dev_id
       }
 
       spec["values"]
-      |> Enum.map(fn value ->
+      |> Enum.map(fn value -> 
         Map.get(token_map, value)
       end)
       |> Enum.join(spec["separator"])

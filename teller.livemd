@@ -295,23 +295,23 @@ Balance Response: {:ok,
      {"cache-control", "max-age=0, private, must-revalidate"},
      {"content-encoding", "gzip"},
      {"content-type", "application/json; charset=utf-8"},
-     {"date", "Thu, 01 Sep 2022 18:52:01 GMT"},
-     {"f-request-id", "req_e5sdhv2y7eilw3nqfhch7k4kdypqrrue3twnnaq"},
+     {"date", "Fri, 02 Sep 2022 16:43:44 GMT"},
+     {"f-request-id", "req_4nqhzlx6tapqhcagr4u35mcfpu5wq5dcvwk652i"},
      {"f-token-spec",
-      "eyJtZXRob2QiOiJzaGEyNTYtYmFzZTY0LW5vLXBhZGRpbmciLCJzZXBhcmF0b3IiOiI6IiwidmFsdWVzIjpbImxhc3QtcmVxdWVzdC1pZCIsInVzZXJuYW1lIiwiYXBpLWtleSIsImRldmljZS1pZCJdfQ=="},
+      "eyJtZXRob2QiOiJzaGEyNTYtYmFzZTY0LW5vLXBhZGRpbmciLCJzZXBhcmF0b3IiOiI6IiwidmFsdWVzIjpbImxhc3QtcmVxdWVzdC1pZCIsImFwaS1rZXkiLCJkZXZpY2UtaWQiLCJ1c2VybmFtZSJdfQ=="},
      {"request-token",
-      "QTEyOEdDTQ.6nvrFMYfjxW1i0y0ms78vrfL4Hy4n2ExyGW9wUMklyW-hpNhT2jlnTOICE0.4Z8mCyahvc-sSIcQ._GtzzUECKSDYLoylQlehdgvgwz1x7xPQPVxH52f_mHy-EuVojhw3f2lfJZQSNpcd0Fw7aMBz47cxYbdIA3S0QqEeJ-cD3AhdVsIJeU-8ypqTxm9Buf6R7b-0q6oo4z1ijQ.oGuzrVdxAl2S3DoYCH2DRA"},
+      "QTEyOEdDTQ.iJk0EL5m6M0sFRCGvL_6ZSQMgVcdkCKKSjsKw6wiQnFrB8W6QVb-vJvm7KQ.EUpG3YoFg-DzOzyH.wlc4KaxH6LPs57QHQ1Be5vA0mTIg20g6RDGdtXlPa_Dt44-CRSfWa6vJ9mr6QHGdlz6UWVgXO-2sVbeRUHV_m7J6udkk627Z5BNUEIpuFZ-uz06V9GFWXaU7FxDT.iJklGbY5gKPpg5NRi_YXew"},
      {"server", "Fly/33b1353d (2022-09-01)"},
      {"teller-is-hiring",
       "https://jobs.lever.co/teller/dd21975a-901b-49ee-926c-336c92f8673d"},
-     {"timestamp", "1662058321125"},
-     {"x-request-id", "FxDRPLKkjcwlRz8AAFTh"},
+     {"timestamp", "1662137024997"},
+     {"x-request-id", "FxEY0V75YkwrwqoAAAOh"},
      {"transfer-encoding", "chunked"},
      {"via", "1.1 fly.io"},
-     {"fly-request-id", "01GBX6AN6F9NTV5Y1WTNECRF2B-iad"}
+     {"fly-request-id", "01GBZHCGF1SN48R8YPAJ4TXD9B-dfw"}
    ],
    body: %{
-     "available" => 6070547,
+     "available" => 4492230,
      "last_transactions" => [
        %{
          "amount" => -399,
@@ -325,7 +325,7 @@ Balance Response: {:ok,
        },
        %{"amount" => -999, "posted" => false, "title" => "Banana walnut waffle"}
      ],
-     "ledger" => 6080547
+     "ledger" => 4502230
    },
    private: %{}
  }}
@@ -334,7 +334,7 @@ Balance Response: {:ok,
 <!-- livebook:{"output":true} -->
 
 ```
-%TellerBank.ChallengeResult{account_number: "218070954071", balance_in_cents: 6070547}
+%TellerBank.ChallengeResult{account_number: "578333918386", balance_in_cents: 4492230}
 ```
 
 See source
