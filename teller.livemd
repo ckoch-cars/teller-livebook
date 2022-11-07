@@ -15,13 +15,13 @@ New:
   castore 0.1.18
   finch 0.13.0
   hpax 0.1.2
-  jason 1.3.0
-  kino 0.6.2
+  jason 1.4.0
+  kino 0.7.0
   mime 2.0.3
   mint 1.4.2
   nimble_options 0.4.0
   nimble_pool 0.2.6
-  req 0.3.0
+  req 0.3.1
   table 0.1.2
   telemetry 1.1.0
 * Getting req (Hex package)
@@ -46,7 +46,7 @@ Generated mime app
 Compiling 3 files (.ex)
 Generated nimble_options app
 ==> kino
-Compiling 28 files (.ex)
+Compiling 36 files (.ex)
 Generated kino app
 ===> Analyzing applications...
 ===> Compiling telemetry
@@ -83,6 +83,8 @@ Generated req app
 ## Your Solution
 
 ```elixir
+username="green_chloe"
+password="lebanon"
 username = Kino.Input.text("Username") |> Kino.render()
 password = Kino.Input.text("Password")
 ```
@@ -133,7 +135,7 @@ defmodule TellerBank do
     @spec fetch(username, password) :: ChallengeResult.t()
     def fetch(username, password) do
       map = %{password: password, username: username}
-      dev_id = "JFANVAI3KUUQ77ZZ"
+      dev_id = "VLKZLV2GBB2HJF5I"
       useragent = "Teller Bank iOS 1.0"
       apikey = "good-luck-at-the-teller-quiz!"
 
@@ -283,58 +285,6 @@ username = Kino.Input.read(username)
 password = Kino.Input.read(password)
 
 TellerBank.Client.fetch(username, password)
-```
-
-<!-- livebook:{"output":true} -->
-
-```
-Balance Response: {:ok,
- %Req.Response{
-   status: 200,
-   headers: [
-     {"cache-control", "max-age=0, private, must-revalidate"},
-     {"content-encoding", "gzip"},
-     {"content-type", "application/json; charset=utf-8"},
-     {"date", "Fri, 02 Sep 2022 16:43:44 GMT"},
-     {"f-request-id", "req_4nqhzlx6tapqhcagr4u35mcfpu5wq5dcvwk652i"},
-     {"f-token-spec",
-      "eyJtZXRob2QiOiJzaGEyNTYtYmFzZTY0LW5vLXBhZGRpbmciLCJzZXBhcmF0b3IiOiI6IiwidmFsdWVzIjpbImxhc3QtcmVxdWVzdC1pZCIsImFwaS1rZXkiLCJkZXZpY2UtaWQiLCJ1c2VybmFtZSJdfQ=="},
-     {"request-token",
-      "QTEyOEdDTQ.iJk0EL5m6M0sFRCGvL_6ZSQMgVcdkCKKSjsKw6wiQnFrB8W6QVb-vJvm7KQ.EUpG3YoFg-DzOzyH.wlc4KaxH6LPs57QHQ1Be5vA0mTIg20g6RDGdtXlPa_Dt44-CRSfWa6vJ9mr6QHGdlz6UWVgXO-2sVbeRUHV_m7J6udkk627Z5BNUEIpuFZ-uz06V9GFWXaU7FxDT.iJklGbY5gKPpg5NRi_YXew"},
-     {"server", "Fly/33b1353d (2022-09-01)"},
-     {"teller-is-hiring",
-      "https://jobs.lever.co/teller/dd21975a-901b-49ee-926c-336c92f8673d"},
-     {"timestamp", "1662137024997"},
-     {"x-request-id", "FxEY0V75YkwrwqoAAAOh"},
-     {"transfer-encoding", "chunked"},
-     {"via", "1.1 fly.io"},
-     {"fly-request-id", "01GBZHCGF1SN48R8YPAJ4TXD9B-dfw"}
-   ],
-   body: %{
-     "available" => 4492230,
-     "last_transactions" => [
-       %{
-         "amount" => -399,
-         "posted" => false,
-         "title" => "Single Origin Espresso at ElixirConf"
-       },
-       %{
-         "amount" => -279,
-         "posted" => false,
-         "title" => "Artisanal chocolate chip cookie"
-       },
-       %{"amount" => -999, "posted" => false, "title" => "Banana walnut waffle"}
-     ],
-     "ledger" => 4502230
-   },
-   private: %{}
- }}
-```
-
-<!-- livebook:{"output":true} -->
-
-```
-%TellerBank.ChallengeResult{account_number: "578333918386", balance_in_cents: 4492230}
 ```
 
 See source
